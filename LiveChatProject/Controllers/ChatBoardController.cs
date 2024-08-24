@@ -45,8 +45,8 @@ namespace LiveChatProject.Controllers
             }
             else
             {
-                var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
-
+                var userIds = HttpContext.Session.GetInt32("UserId") ?? 0;
+                var userId = Convert.ToInt32(userIds);
                 var userName = _context.Users
                                        .Where(u => u.UserId == userId)
                                        .Select(u => u.Username) // Assuming User entity has a UserName property
@@ -59,11 +59,65 @@ namespace LiveChatProject.Controllers
             }
         }
 
+        public IActionResult GetUserListForAgent(int agentId)
+        {
+            var users = _context.ChatCommunications
+                                .Where(cc => cc.AgentId == agentId)
+                                .Select(cc => new
+                                {
+                                    cc.User.UserId,
+                                    cc.User.Username
+                                })
+                                .Distinct() // Ensure the list is unique
+                                .ToList();
+
+            return Json(users);
+        }
         public IActionResult AgentChatBoard()
         {
-            return View(); // Render agent chat board
-            
+            var agentId = HttpContext.Session.GetInt32("AgentId") ?? 0;
+
+            if (agentId == 0)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Get the list of users the agent has communicated with
+            var users = _context.ChatCommunications
+                                .Where(cc => cc.AgentId == agentId)
+                                .Select(cc => new
+                                {
+                                    cc.UserId,
+                                    UserName = _context.Users
+                                                       .Where(u => u.UserId == cc.UserId)
+                                                       .Select(u => u.Username)
+                                                       .FirstOrDefault()
+                                })
+                                .Distinct() // Ensure no duplicate users
+                                .ToList();
+
+            if (users.Count == 0)
+            {
+                // If no users are found, log or debug
+                Console.WriteLine("No users found for agentId: " + agentId);
+            }
+
+            // Retrieve the agent's name
+            var agentName = _context.Agents
+                                    .Where(a => a.AgentId == agentId)
+                                    .Select(a => a.Username)
+                                    .FirstOrDefault();
+
+            // Pass the agentId, agentName, and user list to the view
+            ViewData["AgentId"] = agentId;
+            ViewData["AgentName"] = agentName;
+            ViewData["Users"] = users;
+
+            return View(); // Render the agent chat board view
         }
+
+
+
         public IActionResult UserChatBoard()
         {
             // Retrieve UserId from session
@@ -71,5 +125,6 @@ namespace LiveChatProject.Controllers
             return View(); // Render agent chat board
 
         }
+
     }
 }

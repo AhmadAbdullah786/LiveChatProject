@@ -4,12 +4,20 @@
         .build();
 
     const agentName = document.getElementById('agent-name').value;
-    const userName = document.getElementById('user-name').value;
+    const agentId = parseInt(document.getElementById('agent-id').value);
 
     // Function to display a message on the chat board
-    function displayMessage(senderName, message) {
+    function displayMessage(senderName, message, isFromAgent) {
         const chatBoard = document.getElementById('chat-board');
         const messageElement = document.createElement('div');
+
+        // Apply different styles for agent and user messages
+        if (isFromAgent) {
+            messageElement.classList.add('agent-message');
+        } else {
+            messageElement.classList.add('user-message');
+        }
+
         messageElement.textContent = `${senderName}: ${message}`;
         chatBoard.appendChild(messageElement);
         chatBoard.scrollTop = chatBoard.scrollHeight; // Scroll to bottom
@@ -19,22 +27,52 @@
     connection.on("ReceiveChatHistory", (messages) => {
         const chatBoard = document.getElementById('chat-board');
         chatBoard.innerHTML = ''; // Clear the chat board before loading history
-        messages.forEach(({ userId, agentId, message, isFromAgent }) => {
+        messages.forEach(({ userId, agentId, message, isFromAgent, userName, agentName }) => {
             const senderName = isFromAgent ? agentName : userName;
-            displayMessage(senderName, message);
+            displayMessage(senderName, message, isFromAgent);
         });
     });
+
+    // Function to load user list
+    function loadUserList() {
+        fetch(`/ChatBoard/GetUserListForAgent?agentId=${agentId}`)
+            .then(response => response.json())
+            .then(users => {
+                const userList = document.getElementById('users');
+                userList.innerHTML = ''; // Clear the existing list
+                users.forEach(user => {
+                    const listItem = document.createElement('li');
+                    listItem.setAttribute('data-user-id', user.userId);
+                    listItem.textContent = user.username;
+                    listItem.addEventListener('click', () => {
+                        document.getElementById('user-id').value = user.userId;
+                        document.getElementById('user-name').value = user.username;
+
+                        connection.invoke("LoadChatHistory", user.userId, agentId)
+                            .catch(err => console.error("Failed to load chat history:", err.toString()));
+                    });
+                    userList.appendChild(listItem);
+                });
+
+                // Optionally, load the chat history for the first user in the list on page load
+                if (users.length > 0) {
+                    userList.firstChild.click();
+                }
+            })
+            .catch(err => console.error("Failed to load user list:", err.toString()));
+    }
 
     // Start the SignalR connection
     connection.start().then(() => {
         console.log("Connected to SignalR hub");
 
-        // Load chat history for the selected user when the page loads
-        const userId = document.getElementById('user-id').value;
-        if (userId) {
-            connection.invoke("LoadChatHistory", userId)
-                .catch(err => console.error("Failed to load chat history:", err.toString()));
-        }
+        // Set agent status to available
+        connection.invoke("SetAgentStatus", agentId, true)
+            .catch(err => console.error("Failed to set agent status:", err.toString()));
+
+        // Load the user list after connection starts
+        loadUserList();
+
     }).catch(err => console.error("SignalR connection failed:", err.toString()));
 
     // Handle message sending from agent to user
@@ -54,5 +92,16 @@
         } else {
             console.error("Message, agent ID, or user ID is missing");
         }
+    });
+
+    // Handle end chat button click
+    document.getElementById('end-chat-button').addEventListener('click', () => {
+        // Set agent status to available when the chat ends
+        const agentId = parseInt(document.getElementById('agent-id').value);
+        connection.invoke("SetAgentStatus", agentId, true)
+            .then(() => {
+                console.log("Agent is now available");
+            })
+            .catch(err => console.error("Failed to set agent status:", err.toString()));
     });
 });

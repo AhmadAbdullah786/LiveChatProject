@@ -14,6 +14,7 @@ namespace LiveChatProject.Entity
         [StringLength(100)]
         public string Password { get; set; } = "";
 
+        public bool AgentStatus { get; set; }
 
         [Required]
         [StringLength(100)]

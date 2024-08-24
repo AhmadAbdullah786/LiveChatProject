@@ -11,5 +11,8 @@ namespace LiveChatProject.Entity
         public string Message { get; set; } = "";
         public bool IsFromAgent { get; set; } // True if the message is from the agent, false if from the user
         public DateTime Timestamp { get; set; }
+
+        public User User { get; set; }
+        public Agent Agent { get; set; }
     }
 }
