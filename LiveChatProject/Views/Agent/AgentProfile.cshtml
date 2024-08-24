@@ -1,0 +1,15 @@
+﻿@model LiveChatProject.Entity.Agent
+
+@{
+    ViewData["Title"] = "Agent Profile";
+}
+
+<h2>@Model.Username's Profile</h2>
+
+<div>
+    <h3>Profile Details</h3>
+    <p><strong>UserName Name:</strong> @Model.Username</p>
+    <p><strong>Email:</strong> @Model.Email</p>
+    <a href="@Url.Action("Index", "ChatBoard")" class="btn btn-primary">Go to Chat Board</a>
+
+</div>

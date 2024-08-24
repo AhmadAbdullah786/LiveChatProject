@@ -1,0 +1,28 @@
+﻿@{
+    var agentId = ViewData["AgentId"] ?? 0;
+    var userId = ViewData["UserId"] ?? 0;
+    var userName = ViewData["UserName"] ?? "User";
+    var agentName = ViewData["AgentName"] ?? "Agent";
+}
+<h2>Agent Chat Board</h2>
+
+<div id="chat-board" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px;">
+    <!-- Messages will be displayed here -->
+</div>
+
+<form id="message-form">
+    <div class="form-group">
+        <label for="message-input">Message:</label>
+        <input type="text" id="message-input" class="form-control" />
+    </div>
+    <input type="hidden" id="agent-id" value="@agentId" />
+    <input type="hidden" id="user-id" value="@userId" />
+    <input type="hidden" id="user-name" value="@userName" />
+    <input type="hidden" id="agent-name" value="@agentName" />
+    <button type="submit" class="btn btn-primary">Send</button>
+</form>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+    <script src="~/js/agent-chat.js"></script>
+}
