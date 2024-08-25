@@ -10,6 +10,7 @@
         messageElement.textContent = message; // Display only the message text
         chatBoard.appendChild(messageElement);
         chatBoard.scrollTop = chatBoard.scrollHeight; // Scroll to bottom
+
     }
 
     connection.on("ReceiveMessage", (senderName, message, isFromAgent) => {

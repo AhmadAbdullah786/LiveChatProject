@@ -77,7 +77,8 @@
 
     // Handle message sending from agent to user
     document.getElementById('message-form').addEventListener('submit', (event) => {
-        event.preventDefault(); // Prevent form submission
+        debugger
+        event.preventDefault(); // Prevent default form submission
 
         const message = document.getElementById('message-input').value;
         const agentId = document.getElementById('agent-id').value;
@@ -87,6 +88,9 @@
             connection.invoke("SendMessageToUser", agentId, userId, message)
                 .then(() => {
                     document.getElementById('message-input').value = ''; // Clear input after sending
+
+                    // Allow form submission to proceed after the message is sent
+                    document.getElementById('message-form').submit();
                 })
                 .catch(err => console.error("Failed to send message:", err.toString()));
         } else {
