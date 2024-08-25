@@ -5,6 +5,7 @@
 
     // Function to display a message on the chat board
     function displayMessage(message) {
+        debugger
         const chatBoard = document.getElementById('chat-board');
         const messageElement = document.createElement('div');
         messageElement.textContent = message; // Display only the message text
